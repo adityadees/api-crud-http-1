@@ -21,25 +21,35 @@ class PostRepository
         return $this->post::query()->get();
     }
 
+    public function getByUser($user_id): Collection
+    {
+        return $this->post::query()->where(['user_id' => $user_id])->get();
+    }
+
     public function getById($id): Model
     {
         return $this->post::query()->findOrFail($id);
     }
 
-    public function save($data): Model
+    public function getByUserPostId($post_id, $user_id): Model
+    {
+        return $this->post::query()->where(['user_id', '=', $user_id, 'post_id', '=',  $post_id])->firstOrFail();
+    }
+    public function save($data, $user_id): Model
     {
         $post = new $this->post;
         $post->post_title = $data['post_title'];
         $post->post_slug = Str::slug($data['post_title'], '-');
         $post->post_description = $data['post_description'];
+        $post->user_id = $user_id;
         $post->save();
 
         return $post->fresh();
     }
 
-    public function update($data, $id): Model
+    public function update($data, $post_id, $user_id): Model
     {
-        $post = $this->getById($id);
+        $post = $this->getByUserPostId($post_id, $user_id);
         $post->post_title = $data['post_title'];
         $post->post_slug = Str::slug($data['post_title'], '-');
         $post->post_description = $data['post_description'];

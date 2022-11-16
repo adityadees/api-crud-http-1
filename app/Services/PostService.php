@@ -4,16 +4,27 @@ namespace App\Services;
 
 use Illuminate\Http\JsonResponse;
 use App\Repositories\PostRepository;
+use App\Http\Library\RoleHelper;
 
 class PostService extends Service
 {
     protected $postRepository;
+    use RoleHelper;
 
     public function __construct(PostRepository $postRepository)
     {
         $this->postRepository = $postRepository;
     }
 
+    public function get($data): JsonResponse
+    {
+        if ($this->isNormal($data)) {
+            $posts = $this->postRepository->getByUser($data->user_id);
+        } else {
+            $posts = $this->postRepository->getAll();
+        }
+        return $this->ApiSuccessResponse($posts);
+    }
     public function getAll(): JsonResponse
     {
         $posts = $this->postRepository->getAll();
@@ -21,23 +32,16 @@ class PostService extends Service
         return $this->ApiSuccessResponse($posts);
     }
 
-    public function getByUser($data): JsonResponse
+    public function getByUser($user_id): JsonResponse
     {
-        $posts = $this->postRepository->getByUser($data);
+        $posts = $this->postRepository->getByUser($user_id);
 
         return $this->ApiSuccessResponse($posts);
     }
 
-    public function getByRole(): JsonResponse
+    public function savePostData($data, $user_id): JsonResponse
     {
-        $posts = $this->postRepository->getByRole();
-
-        return $this->ApiSuccessResponse($posts);
-    }
-
-    public function savePostData($data): JsonResponse
-    {
-        $post = $this->postRepository->save($data);
+        $post = $this->postRepository->save($data, $user_id);
 
         return $this->ApiSuccessResponse($post, 'Post Created Successfully');
     }
@@ -49,9 +53,9 @@ class PostService extends Service
         return $this->ApiSuccessResponse($post);
     }
 
-    public function updatePost($data, $id): JsonResponse
+    public function updatePost($data, $id, $user_id): JsonResponse
     {
-        $post = $this->postRepository->update($data, $id);
+        $post = $this->postRepository->update($data, $id, $user_id);
 
         return $this->ApiSuccessResponse($post);
     }
